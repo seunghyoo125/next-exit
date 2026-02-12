@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Resume {
+  id            String   @id @default(cuid())
+  filename      String
+  fileType      String   // "pdf" | "docx"
+  rawText       String
+  targetCompany String   @default("")
+  targetRole    String   @default("")
+  createdAt     DateTime @default(now())
+  bullets       Bullet[]
+}
+
+model Bullet {
+  id        String   @id @default(cuid())
+  content   String
+  section   String   // original section heading from resume
+  company   String
+  roleTitle String
+  category  String   @default("experience")
+  roleLevel String   @default("")
+  theme     String   @default("")
+  resumeId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resume            Resume              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  builtResumeBullets BuiltResumeBullet[]
+}
+
+model BuiltResume {
+  id                 String   @id @default(cuid())
+  title              String
+  jobDescription     String
+  status             String   @default("draft")
+  currentStep        Int      @default(1)
+  interpretation     String   @default("")
+  strategyAssessment String   @default("")
+  userNotes          String   @default("")
+  formatPreset       String   @default("")
+  sanityCheck        String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  sections           BuiltResumeSection[]
+}
+
+model BuiltResumeSection {
+  id            String   @id @default(cuid())
+  roleTitle     String
+  company       String
+  bulletCount   Int
+  sortOrder     Int
+  builtResumeId String
+
+  builtResume BuiltResume       @relation(fields: [builtResumeId], references: [id], onDelete: Cascade)
+  bullets     BuiltResumeBullet[]
+}
+
+model BuiltResumeBullet {
+  id             String @id @default(cuid())
+  sortOrder      Int
+  sectionId      String
+  bulletId       String
+  reviewVerdict  String @default("")
+  reviewFeedback String @default("")
+  suggestedText  String @default("")
+  finalText      String @default("")
+  userDecision   String @default("")
+
+  section BuiltResumeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  bullet  Bullet             @relation(fields: [bulletId], references: [id])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ThemeAnalysis {
+  theme     String   @id
+  summary   String
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id             String   @id @default("singleton")
+  background     String   @default("")
+  proofPoints    String   @default("[]")
+  topStrengths   String   @default("[]")
+  constraints    String   @default("[]")
+  preferredTone  String   @default("")
+  groundTruth    String   @default("")   // JSON-encoded GroundTruthProfile
+  updatedAt      DateTime @updatedAt
+}
