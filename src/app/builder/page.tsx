@@ -245,7 +245,7 @@ function BuilderPageInner() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Resume Builder</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Next Exit</h1>
         <p className="text-muted-foreground mt-1">
           Guided multi-step resume builder with AI analysis and review
         </p>

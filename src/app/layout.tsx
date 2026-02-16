@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Resume Bullet Bank",
-  description: "Manage resume bullets across multiple resume versions",
+  title: "Next Exit",
+  description: "AI-powered resume builder for your next career move",
 };
 
 export default function RootLayout({
