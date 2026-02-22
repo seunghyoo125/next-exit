@@ -1,8 +1,15 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  (process.env.VERCEL ? "file:/tmp/dev.db" : "file:dev.db");
+const databaseAuthToken =
+  process.env.DATABASE_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN || undefined;
+
 const adapter = new PrismaLibSql({
-  url: "file:dev.db",
+  url: databaseUrl,
+  ...(databaseAuthToken ? { authToken: databaseAuthToken } : {}),
 });
 
 const globalForPrisma = globalThis as unknown as {
