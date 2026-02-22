@@ -1,5 +1,15 @@
 import type { JobSourceType, NormalizedJobPosting } from "./types";
 
+async function fetchWithTimeout(url: string, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { cache: "no-store", signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function asDate(value: unknown): Date | null {
   if (typeof value === "string" || typeof value === "number") {
     const d = new Date(value);
@@ -10,7 +20,7 @@ function asDate(value: unknown): Date | null {
 
 async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(sourceId)}/jobs`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithTimeout(url);
   if (!res.ok) {
     throw new Error(`Greenhouse fetch failed (${res.status})`);
   }
@@ -43,7 +53,7 @@ async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]
 
 async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
   const url = `https://api.lever.co/v0/postings/${encodeURIComponent(sourceId)}?mode=json`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithTimeout(url);
   if (!res.ok) {
     throw new Error(`Lever fetch failed (${res.status})`);
   }
@@ -77,7 +87,7 @@ async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
 
 async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(sourceId)}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithTimeout(url);
   if (!res.ok) {
     throw new Error(`Ashby fetch failed (${res.status})`);
   }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { runJobAlertCheck } from "@/lib/jobs/run-check";
 
+export const maxDuration = 60;
+
 export async function POST() {
   try {
     const summary = await runJobAlertCheck();

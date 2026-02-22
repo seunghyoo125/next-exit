@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runJobAlertCheck } from "@/lib/jobs/run-check";
 
+export const maxDuration = 60;
+
 function isAuthorized(req: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
