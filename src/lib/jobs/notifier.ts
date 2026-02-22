@@ -7,6 +7,20 @@ export interface JobAlertMessage {
   matchedKeywords: string[];
 }
 
+async function postWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs = 5000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function sendSlackAlert(message: JobAlertMessage): Promise<boolean> {
   const webhook = process.env.SLACK_WEBHOOK_URL;
   if (!webhook) return false;
@@ -25,7 +39,7 @@ export async function sendSlackAlert(message: JobAlertMessage): Promise<boolean>
     `• Link: ${message.url}`,
   ].join("\n");
 
-  const res = await fetch(webhook, {
+  const res = await postWithTimeout(webhook, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
@@ -60,7 +74,7 @@ export async function sendEmailDigest(messages: JobAlertMessage[]): Promise<bool
     ...lines,
   ].join("\n");
 
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await postWithTimeout("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
