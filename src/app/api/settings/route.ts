@@ -9,11 +9,15 @@ export async function GET() {
   });
 
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  const anthropicKey = map.anthropic_api_key || "";
+  const openaiKey = map.openai_api_key || "";
 
   return NextResponse.json({
     provider: map.ai_provider || "anthropic",
-    anthropicApiKey: map.anthropic_api_key || "",
-    openaiApiKey: map.openai_api_key || "",
+    hasAnthropicApiKey: anthropicKey.length > 0,
+    hasOpenaiApiKey: openaiKey.length > 0,
+    anthropicKeyHint: anthropicKey ? `...${anthropicKey.slice(-4)}` : "",
+    openaiKeyHint: openaiKey ? `...${openaiKey.slice(-4)}` : "",
   });
 }
 
@@ -28,6 +32,9 @@ export async function PUT(request: Request) {
   const upserts: { key: string; value: string }[] = [];
 
   if (provider !== undefined) {
+    if (provider !== "anthropic" && provider !== "openai") {
+      return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
+    }
     upserts.push({ key: "ai_provider", value: provider });
   }
   if (anthropicApiKey !== undefined) {

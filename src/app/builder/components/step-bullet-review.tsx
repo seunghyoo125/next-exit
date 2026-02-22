@@ -48,6 +48,8 @@ interface StepBulletReviewProps {
   setSectionResults: (results: SectionWithSelections[] | null) => void;
   bulletReviews: Record<string, BulletReview>;
   setBulletReviews: (reviews: Record<string, BulletReview>) => void;
+  bulletDecisions: Record<string, BulletDecision>;
+  setBulletDecisions: (decisions: Record<string, BulletDecision>) => void;
   onContinue: () => void;
   onBack: () => void;
 }
@@ -62,13 +64,14 @@ export default function StepBulletReview({
   setSectionResults,
   bulletReviews,
   setBulletReviews,
+  bulletDecisions,
+  setBulletDecisions,
   onContinue,
   onBack,
 }: StepBulletReviewProps) {
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [reviewingSection, setReviewingSection] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
-  const [bulletDecisions, setBulletDecisions] = useState<Record<string, BulletDecision>>({});
 
   // Phase A: Get recommendations
   const fetchRecommendations = async () => {

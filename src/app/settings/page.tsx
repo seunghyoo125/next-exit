@@ -13,6 +13,10 @@ export default function SettingsPage() {
   const [provider, setProvider] = useState<Provider>("anthropic");
   const [anthropicApiKey, setAnthropicApiKey] = useState("");
   const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [hasAnthropicApiKey, setHasAnthropicApiKey] = useState(false);
+  const [hasOpenaiApiKey, setHasOpenaiApiKey] = useState(false);
+  const [anthropicKeyHint, setAnthropicKeyHint] = useState("");
+  const [openaiKeyHint, setOpenaiKeyHint] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -21,8 +25,10 @@ export default function SettingsPage() {
       .then((res) => res.json())
       .then((data) => {
         setProvider(data.provider || "anthropic");
-        setAnthropicApiKey(data.anthropicApiKey || "");
-        setOpenaiApiKey(data.openaiApiKey || "");
+        setHasAnthropicApiKey(Boolean(data.hasAnthropicApiKey));
+        setHasOpenaiApiKey(Boolean(data.hasOpenaiApiKey));
+        setAnthropicKeyHint(data.anthropicKeyHint || "");
+        setOpenaiKeyHint(data.openaiKeyHint || "");
       })
       .catch(() => toast.error("Failed to load settings"))
       .finally(() => setLoading(false));
@@ -34,9 +40,21 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, anthropicApiKey, openaiApiKey }),
+        body: JSON.stringify({
+          provider,
+          ...(anthropicApiKey.trim() ? { anthropicApiKey: anthropicApiKey.trim() } : {}),
+          ...(openaiApiKey.trim() ? { openaiApiKey: openaiApiKey.trim() } : {}),
+        }),
       });
       if (!res.ok) throw new Error("Failed to save");
+      if (anthropicApiKey.trim()) {
+        setAnthropicApiKey("");
+        setHasAnthropicApiKey(true);
+      }
+      if (openaiApiKey.trim()) {
+        setOpenaiApiKey("");
+        setHasOpenaiApiKey(true);
+      }
       toast.success("Settings saved");
     } catch {
       toast.error("Failed to save settings");
@@ -108,6 +126,11 @@ export default function SettingsPage() {
                 value={anthropicApiKey}
                 onChange={(e) => setAnthropicApiKey(e.target.value)}
               />
+              {hasAnthropicApiKey && (
+                <p className="text-xs text-muted-foreground">
+                  Saved key on file ({anthropicKeyHint || "configured"}). Leave blank to keep current key.
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Uses Claude Sonnet 4.5 for resume parsing and analysis
               </p>
@@ -124,6 +147,11 @@ export default function SettingsPage() {
                 value={openaiApiKey}
                 onChange={(e) => setOpenaiApiKey(e.target.value)}
               />
+              {hasOpenaiApiKey && (
+                <p className="text-xs text-muted-foreground">
+                  Saved key on file ({openaiKeyHint || "configured"}). Leave blank to keep current key.
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Uses o3 (highest reasoning model) for resume parsing and analysis
               </p>

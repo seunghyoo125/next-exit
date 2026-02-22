@@ -15,7 +15,6 @@ import Link from "next/link";
 import {
   RoleInput,
   RoleComparisonResult,
-  SectionRecommendation,
 } from "@/types";
 
 interface SectionConfig {

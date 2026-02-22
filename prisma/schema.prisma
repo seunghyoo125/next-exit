@@ -107,3 +107,48 @@ model Profile {
   groundTruth    String   @default("")   // JSON-encoded GroundTruthProfile
   updatedAt      DateTime @updatedAt
 }
+
+model JobWatchlist {
+  id               String    @id @default(cuid())
+  company          String
+  sourceType       String    @default("greenhouse") // "greenhouse" | "lever"
+  sourceId         String    // board token/site slug
+  titleKeywords    String    @default("[]") // JSON-encoded string[]
+  locationKeywords String    @default("[]") // JSON-encoded string[]
+  active           Boolean   @default(true)
+  lastCheckedAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  alerts           JobAlert[]
+}
+
+model JobAlert {
+  id              String      @id @default(cuid())
+  watchlistId     String
+  externalId      String
+  company         String
+  title           String
+  url             String
+  location        String      @default("")
+  postedAt        DateTime?
+  sourceUpdatedAt DateTime?
+  matchedKeywords String      @default("[]") // JSON-encoded string[]
+  channel         String      @default("slack")
+  status          String      @default("new") // "new" | "notified" | "failed"
+  notifiedAt      DateTime?
+  userDecision    String      @default("") // "" | "applied" | "skip"
+  decisionNote    String      @default("")
+  decidedAt       DateTime?
+  firstSeenAt     DateTime    @default(now())
+  lastSeenAt      DateTime    @default(now())
+  seenCount       Int         @default(1)
+  isActive        Boolean     @default(true)
+  staleAt         DateTime?
+  repostCount     Int         @default(0)
+  lastRepostedAt  DateTime?
+  createdAt       DateTime    @default(now())
+
+  watchlist JobWatchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  @@unique([watchlistId, externalId])
+}

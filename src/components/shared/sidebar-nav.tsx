@@ -10,6 +10,8 @@ const navItems = [
   { href: "/resumes", label: "Resumes", icon: "FileText" },
   { href: "/bullets", label: "Bullet Bank", icon: "List" },
   { href: "/projects", label: "Projects", icon: "FolderOpen" },
+  { href: "/watchlist", label: "Watchlist", icon: "Radar" },
+  { href: "/inbox", label: "Alerts Inbox", icon: "Bell" },
   { href: "/profile", label: "Profile", icon: "User" },
   { href: "/builder", label: "Builder", icon: "Hammer" },
   { href: "/settings", label: "Settings", icon: "Settings" },
@@ -30,6 +32,12 @@ const iconMap: Record<string, React.ReactNode> = {
   ),
   FolderOpen: (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
+  ),
+  Radar: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76a6 6 0 1 0 1.82 5.42"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 12 18"/><circle cx="12" cy="12" r="2"/></svg>
+  ),
+  Bell: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
   ),
   User: (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

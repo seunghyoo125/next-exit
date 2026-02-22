@@ -33,6 +33,11 @@ interface SectionWithSelections extends SectionConfig {
   formatSuggestion?: string;
 }
 
+interface BulletDecision {
+  finalText: string;
+  userDecision: string; // "accept" | "edit" | "keep"
+}
+
 interface StepSanityCheckProps {
   title: string;
   jobDescription: string;
@@ -40,6 +45,7 @@ interface StepSanityCheckProps {
   strategyAssessment: StrategyAssessment | null;
   sectionResults: SectionWithSelections[];
   bulletReviews: Record<string, BulletReview>;
+  bulletDecisions: Record<string, BulletDecision>;
   sanityCheck: SanityCheckResult | null;
   setSanityCheck: (result: SanityCheckResult | null) => void;
   savedId: string | null;
@@ -55,6 +61,7 @@ export default function StepSanityCheck({
   strategyAssessment,
   sectionResults,
   bulletReviews,
+  bulletDecisions,
   sanityCheck,
   setSanityCheck,
   savedId,
@@ -67,6 +74,9 @@ export default function StepSanityCheck({
 
   // Get final text for each bullet (from reviews/decisions or original)
   const getFinalText = (bulletId: string): string => {
+    const decision = bulletDecisions[bulletId];
+    if (decision?.finalText) return decision.finalText;
+
     const review = bulletReviews[bulletId];
     if (!review) {
       // No review — find original text from sectionResults
@@ -76,7 +86,7 @@ export default function StepSanityCheck({
       }
       return "";
     }
-    // Use suggested text if accepted, otherwise original
+    // Fallback for old data if no explicit decision is present
     return review.suggestedText || review.originalText;
   };
 
@@ -149,7 +159,7 @@ export default function StepSanityCheck({
           reviewVerdict: bulletReviews[id]?.verdict || "",
           reviewFeedback: bulletReviews[id]?.feedback || "",
           suggestedText: bulletReviews[id]?.suggestedText || "",
-          userDecision: bulletReviews[id] ? "accept" : "keep",
+          userDecision: bulletDecisions[id]?.userDecision || (bulletReviews[id] ? "accept" : "keep"),
         })),
       }));
 

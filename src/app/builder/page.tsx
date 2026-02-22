@@ -9,7 +9,6 @@ import {
   StrategyAssessment,
   SanityCheckResult,
   BuilderStep,
-  SectionRecommendation,
   BulletReview,
 } from "@/types";
 import BuilderStepper from "./components/builder-stepper";
@@ -39,6 +38,11 @@ interface SectionWithSelections extends SectionConfig {
   recommendations: RecommendedBullet[];
   selectedBulletIds: string[];
   formatSuggestion?: string;
+}
+
+interface BulletDecision {
+  finalText: string;
+  userDecision: string; // "accept" | "edit" | "keep"
 }
 
 interface FormatPreset {
@@ -95,13 +99,14 @@ function BuilderPageInner() {
   // Step 4: Bullets
   const [sectionResults, setSectionResults] = useState<SectionWithSelections[] | null>(null);
   const [bulletReviews, setBulletReviews] = useState<Record<string, BulletReview>>({});
+  const [bulletDecisions, setBulletDecisions] = useState<Record<string, BulletDecision>>({});
 
   // Step 5: Sanity Check
   const [sanityCheck, setSanityCheck] = useState<SanityCheckResult | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
 
   // Draft persistence
-  const { draftId, setDraftId, saving, lastSavedAt, createDraft, updateDraft, updateDraftDebounced, loadDraft } = useBuilderDraft();
+  const { draftId, saving, lastSavedAt, createDraft, updateDraft, updateDraftDebounced, loadDraft } = useBuilderDraft();
 
   // Load draft from URL params (reactive to client-side navigation)
   const searchParams = useSearchParams();
@@ -152,6 +157,7 @@ function BuilderPageInner() {
     if (fromStep <= 4) {
       setSectionResults(null);
       setBulletReviews({});
+      setBulletDecisions({});
     }
     if (fromStep <= 5) {
       setSanityCheck(null);
@@ -371,6 +377,8 @@ function BuilderPageInner() {
               setSectionResults={setSectionResults}
               bulletReviews={bulletReviews}
               setBulletReviews={setBulletReviews}
+              bulletDecisions={bulletDecisions}
+              setBulletDecisions={setBulletDecisions}
               onContinue={handleStep4Continue}
               onBack={() => goToStep(3)}
             />
@@ -385,6 +393,7 @@ function BuilderPageInner() {
               strategyAssessment={strategyAssessment}
               sectionResults={sectionResults}
               bulletReviews={bulletReviews}
+              bulletDecisions={bulletDecisions}
               sanityCheck={sanityCheck}
               setSanityCheck={setSanityCheck}
               savedId={savedId}
