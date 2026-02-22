@@ -22,10 +22,22 @@ export interface JobCheckSummary {
   alertsNotified: number;
   alertsReposted: number;
   alertsStaled: number;
+  timedOut: boolean;
   errors: string[];
 }
 
-export async function runJobAlertCheck(): Promise<JobCheckSummary> {
+interface RunJobAlertCheckOptions {
+  notify?: boolean;
+  maxRuntimeMs?: number;
+}
+
+export async function runJobAlertCheck(
+  options: RunJobAlertCheckOptions = {}
+): Promise<JobCheckSummary> {
+  const notify = options.notify ?? true;
+  const maxRuntimeMs = options.maxRuntimeMs ?? 30000;
+  const startedAt = Date.now();
+
   const activeWatches = await prisma.jobWatchlist.findMany({
     where: { active: true },
     orderBy: { updatedAt: "desc" },
@@ -39,6 +51,7 @@ export async function runJobAlertCheck(): Promise<JobCheckSummary> {
     alertsNotified: 0,
     alertsReposted: 0,
     alertsStaled: 0,
+    timedOut: false,
     errors: [],
   };
 
@@ -53,6 +66,12 @@ export async function runJobAlertCheck(): Promise<JobCheckSummary> {
   }> = [];
 
   for (const watch of activeWatches) {
+    if (Date.now() - startedAt > maxRuntimeMs) {
+      summary.timedOut = true;
+      summary.errors.push("Timed out before finishing all watches");
+      break;
+    }
+
     try {
       const postings = await fetchJobsBySource(watch.sourceType as SourceType, watch.sourceId);
       summary.jobsFetched += postings.length;
@@ -102,7 +121,7 @@ export async function runJobAlertCheck(): Promise<JobCheckSummary> {
 
           summary.alertsCreated += 1;
 
-          if (match.hiddenByKeyword) {
+          if (match.hiddenByKeyword || !notify) {
             // Keep in dashboard but avoid noisy notifications for low keyword relevance.
             continue;
           }
@@ -177,7 +196,7 @@ export async function runJobAlertCheck(): Promise<JobCheckSummary> {
         if (!reposted) continue;
         summary.alertsCreated += 1;
 
-        if (match.hiddenByKeyword) {
+        if (match.hiddenByKeyword || !notify) {
           continue;
         }
 
@@ -244,7 +263,7 @@ export async function runJobAlertCheck(): Promise<JobCheckSummary> {
     }
   }
 
-  if (digestQueue.length > 0) {
+  if (notify && digestQueue.length > 0) {
     try {
       const sent = await sendEmailDigest(
         digestQueue.map((d) => ({

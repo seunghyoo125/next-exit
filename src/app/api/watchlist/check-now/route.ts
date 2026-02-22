@@ -5,7 +5,10 @@ export const maxDuration = 60;
 
 export async function POST() {
   try {
-    const summary = await runJobAlertCheck();
+    const summary = await runJobAlertCheck({
+      notify: false,
+      maxRuntimeMs: 8000,
+    });
     return NextResponse.json(summary);
   } catch (error) {
     return NextResponse.json(
