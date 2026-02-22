@@ -1,6 +1,6 @@
 import type { JobSourceType, NormalizedJobPosting } from "./types";
 
-async function fetchWithTimeout(url: string, timeoutMs = 8000): Promise<Response> {
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -18,9 +18,9 @@ function asDate(value: unknown): Date | null {
   return null;
 }
 
-async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]> {
+async function fetchGreenhouse(sourceId: string, timeoutMs: number): Promise<NormalizedJobPosting[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(sourceId)}/jobs`;
-  const res = await fetchWithTimeout(url);
+  const res = await fetchWithTimeout(url, timeoutMs);
   if (!res.ok) {
     throw new Error(`Greenhouse fetch failed (${res.status})`);
   }
@@ -51,9 +51,9 @@ async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]
   return mapped.filter((j): j is NormalizedJobPosting => j !== null);
 }
 
-async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
+async function fetchLever(sourceId: string, timeoutMs: number): Promise<NormalizedJobPosting[]> {
   const url = `https://api.lever.co/v0/postings/${encodeURIComponent(sourceId)}?mode=json`;
-  const res = await fetchWithTimeout(url);
+  const res = await fetchWithTimeout(url, timeoutMs);
   if (!res.ok) {
     throw new Error(`Lever fetch failed (${res.status})`);
   }
@@ -85,9 +85,9 @@ async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
   return mapped.filter((j): j is NormalizedJobPosting => j !== null);
 }
 
-async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
+async function fetchAshby(sourceId: string, timeoutMs: number): Promise<NormalizedJobPosting[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(sourceId)}`;
-  const res = await fetchWithTimeout(url);
+  const res = await fetchWithTimeout(url, timeoutMs);
   if (!res.ok) {
     throw new Error(`Ashby fetch failed (${res.status})`);
   }
@@ -127,10 +127,12 @@ async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
 
 export async function fetchJobsBySource(
   sourceType: JobSourceType,
-  sourceId: string
+  sourceId: string,
+  options?: { timeoutMs?: number }
 ): Promise<NormalizedJobPosting[]> {
-  if (sourceType === "greenhouse") return fetchGreenhouse(sourceId);
-  if (sourceType === "lever") return fetchLever(sourceId);
-  if (sourceType === "ashby") return fetchAshby(sourceId);
+  const timeoutMs = options?.timeoutMs ?? 8000;
+  if (sourceType === "greenhouse") return fetchGreenhouse(sourceId, timeoutMs);
+  if (sourceType === "lever") return fetchLever(sourceId, timeoutMs);
+  if (sourceType === "ashby") return fetchAshby(sourceId, timeoutMs);
   throw new Error(`Unsupported source type: ${sourceType}`);
 }

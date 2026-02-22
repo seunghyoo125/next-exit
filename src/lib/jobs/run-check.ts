@@ -29,6 +29,8 @@ export interface JobCheckSummary {
 interface RunJobAlertCheckOptions {
   notify?: boolean;
   maxRuntimeMs?: number;
+  maxWatches?: number;
+  sourceTimeoutMs?: number;
 }
 
 export async function runJobAlertCheck(
@@ -36,12 +38,15 @@ export async function runJobAlertCheck(
 ): Promise<JobCheckSummary> {
   const notify = options.notify ?? true;
   const maxRuntimeMs = options.maxRuntimeMs ?? 30000;
+  const maxWatches = options.maxWatches ?? Number.POSITIVE_INFINITY;
+  const sourceTimeoutMs = options.sourceTimeoutMs ?? 8000;
   const startedAt = Date.now();
 
-  const activeWatches = await prisma.jobWatchlist.findMany({
+  const allWatches = await prisma.jobWatchlist.findMany({
     where: { active: true },
     orderBy: { updatedAt: "desc" },
   });
+  const activeWatches = allWatches.slice(0, maxWatches);
 
   const summary: JobCheckSummary = {
     watchesChecked: activeWatches.length,
@@ -73,7 +78,9 @@ export async function runJobAlertCheck(
     }
 
     try {
-      const postings = await fetchJobsBySource(watch.sourceType as SourceType, watch.sourceId);
+      const postings = await fetchJobsBySource(watch.sourceType as SourceType, watch.sourceId, {
+        timeoutMs: sourceTimeoutMs,
+      });
       summary.jobsFetched += postings.length;
 
       const now = new Date();
