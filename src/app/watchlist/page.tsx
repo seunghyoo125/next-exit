@@ -40,6 +40,7 @@ export default function WatchlistPage() {
   const [locationKeywords, setLocationKeywords] = useState("");
   const [detecting, setDetecting] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [previewingWatchId, setPreviewingWatchId] = useState<string | null>(null);
   const [validation, setValidation] = useState<{
     valid: boolean;
     count?: number;
@@ -192,15 +193,31 @@ export default function WatchlistPage() {
     }
   }
 
-  async function runCheckNow() {
+  async function runCheckNow(watchId?: string) {
     try {
-      const res = await fetch("/api/watchlist/check-now", { method: "POST" });
+      if (watchId) setPreviewingWatchId(watchId);
+      const res = await fetch("/api/watchlist/check-now", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(watchId ? { watchId } : {}),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       if (data.mode === "preview") {
         toast.success(
-          `Preview checked ${data.watchesChecked} watch: ${data.matchesFound} matches (${data.hiddenByKeyword} hidden)`
+          `Preview (${data.sampledWatch?.company || "watch"}): ${data.matchesFound} matches (${data.hiddenByKeyword} hidden)`
         );
+        if (
+          Array.isArray(data.samples) &&
+          data.samples.length > 0 &&
+          data.hiddenByKeyword === data.matchesFound
+        ) {
+          const examples = data.samples
+            .slice(0, 3)
+            .map((s: { title: string }) => s.title)
+            .join(" | ");
+          toast.message(`Sample titles: ${examples}`);
+        }
       } else {
         toast.success(
           `Checked ${data.watchesChecked} watches, created ${data.alertsCreated} alerts`
@@ -209,6 +226,8 @@ export default function WatchlistPage() {
       await load();
     } catch {
       toast.error("Failed to run job check");
+    } finally {
+      setPreviewingWatchId(null);
     }
   }
 
@@ -224,7 +243,7 @@ export default function WatchlistPage() {
             Check Now runs a fast preview sample. Full ingestion + notifications run via cron.
           </p>
         </div>
-        <Button variant="outline" onClick={runCheckNow}>
+        <Button variant="outline" onClick={() => runCheckNow()}>
           Preview Check
         </Button>
       </div>
@@ -352,6 +371,14 @@ export default function WatchlistPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => runCheckNow(item.id)}
+                        disabled={previewingWatchId === item.id}
+                      >
+                        {previewingWatchId === item.id ? "Previewing..." : "Preview"}
+                      </Button>
                       <Button
                         variant={item.active ? "default" : "outline"}
                         size="sm"

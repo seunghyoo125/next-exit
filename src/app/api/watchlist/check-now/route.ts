@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { fetchJobsBySource } from "@/lib/jobs/sources";
 import { matchPosting } from "@/lib/jobs/matcher";
@@ -16,15 +16,19 @@ function parseStoredArray(value: string): string[] {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Lightweight diagnostic: sample only the most recent active watch.
-    const watch = await prisma.jobWatchlist.findFirst({
-      where: { active: true },
-      orderBy: { updatedAt: "desc" },
-    });
+    const body = await request.json().catch(() => ({}));
+    const watchId = typeof body.watchId === "string" ? body.watchId.trim() : "";
 
-    if (!watch) {
+    const watch = watchId
+      ? await prisma.jobWatchlist.findUnique({ where: { id: watchId } })
+      : await prisma.jobWatchlist.findFirst({
+          where: { active: true },
+          orderBy: { updatedAt: "desc" },
+        });
+
+    if (!watch || !watch.active) {
       return NextResponse.json({
         watchesChecked: 0,
         sampledWatch: null,
@@ -47,9 +51,23 @@ export async function POST() {
     const sampled = postings.slice(0, 25);
     let matchesFound = 0;
     let hiddenByKeyword = 0;
+    const samples: Array<{
+      title: string;
+      location: string;
+      matched: boolean;
+      hiddenByKeyword: boolean;
+      matchedKeywords: string[];
+    }> = [];
 
     for (const posting of sampled) {
       const m = matchPosting(posting, titleKeywords, locationKeywords);
+      samples.push({
+        title: posting.title,
+        location: posting.location,
+        matched: m.matched,
+        hiddenByKeyword: m.hiddenByKeyword,
+        matchedKeywords: m.matchedKeywords,
+      });
       if (m.matched) {
         matchesFound += 1;
         if (m.hiddenByKeyword) hiddenByKeyword += 1;
@@ -69,6 +87,7 @@ export async function POST() {
       alertsCreated: 0,
       alertsNotified: 0,
       hiddenByKeyword,
+      samples,
       mode: "preview",
       note: "Lightweight preview check. Full ingestion + notifications happen in cron runs.",
       errors: [],
