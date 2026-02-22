@@ -17,8 +17,7 @@ async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]
   const data = (await res.json()) as { jobs?: Array<Record<string, unknown>> };
   const jobs = Array.isArray(data.jobs) ? data.jobs : [];
 
-  return jobs
-    .map((job) => {
+  const mapped = jobs.map((job): NormalizedJobPosting | null => {
       const id = job.id;
       const title = job.title;
       const absoluteUrl = job.absolute_url;
@@ -37,8 +36,9 @@ async function fetchGreenhouse(sourceId: string): Promise<NormalizedJobPosting[]
         postedAt: null,
         updatedAt: asDate(updatedAt),
       } satisfies NormalizedJobPosting;
-    })
-    .filter((j): j is NormalizedJobPosting => j !== null);
+    });
+
+  return mapped.filter((j): j is NormalizedJobPosting => j !== null);
 }
 
 async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
@@ -50,8 +50,7 @@ async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
   const data = (await res.json()) as Array<Record<string, unknown>>;
   const jobs = Array.isArray(data) ? data : [];
 
-  return jobs
-    .map((job) => {
+  const mapped = jobs.map((job): NormalizedJobPosting | null => {
       const id = job.id;
       const text = job.text;
       const hostedUrl = job.hostedUrl;
@@ -71,8 +70,9 @@ async function fetchLever(sourceId: string): Promise<NormalizedJobPosting[]> {
         postedAt: asDate(createdAt),
         updatedAt: asDate(updatedAt),
       } satisfies NormalizedJobPosting;
-    })
-    .filter((j): j is NormalizedJobPosting => j !== null);
+    });
+
+  return mapped.filter((j): j is NormalizedJobPosting => j !== null);
 }
 
 async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
@@ -84,8 +84,7 @@ async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
   const data = (await res.json()) as { jobs?: Array<Record<string, unknown>> };
   const jobs = Array.isArray(data.jobs) ? data.jobs : [];
 
-  return jobs
-    .map((job) => {
+  const mapped = jobs.map((job): NormalizedJobPosting | null => {
       const id = (job.id ?? job._id) as unknown;
       const title = job.title;
       const jobUrl = (job.jobUrl ?? job.applyUrl ?? job.url) as unknown;
@@ -111,8 +110,9 @@ async function fetchAshby(sourceId: string): Promise<NormalizedJobPosting[]> {
         postedAt: asDate(publishedAt),
         updatedAt: asDate(updatedAt),
       } satisfies NormalizedJobPosting;
-    })
-    .filter((j): j is NormalizedJobPosting => j !== null);
+    });
+
+  return mapped.filter((j): j is NormalizedJobPosting => j !== null);
 }
 
 export async function fetchJobsBySource(
