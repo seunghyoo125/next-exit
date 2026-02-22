@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +49,7 @@ interface StepBulletReviewProps {
   bulletReviews: Record<string, BulletReview>;
   setBulletReviews: (reviews: Record<string, BulletReview>) => void;
   bulletDecisions: Record<string, BulletDecision>;
-  setBulletDecisions: (decisions: Record<string, BulletDecision>) => void;
+  setBulletDecisions: Dispatch<SetStateAction<Record<string, BulletDecision>>>;
   onContinue: () => void;
   onBack: () => void;
 }
