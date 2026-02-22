@@ -197,9 +197,15 @@ export default function WatchlistPage() {
       const res = await fetch("/api/watchlist/check-now", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      toast.success(
-        `Checked ${data.watchesChecked} watches, created ${data.alertsCreated} alerts`
-      );
+      if (data.mode === "preview") {
+        toast.success(
+          `Preview checked ${data.watchesChecked} watch: ${data.matchesFound} matches (${data.hiddenByKeyword} hidden)`
+        );
+      } else {
+        toast.success(
+          `Checked ${data.watchesChecked} watches, created ${data.alertsCreated} alerts`
+        );
+      }
       await load();
     } catch {
       toast.error("Failed to run job check");
@@ -214,9 +220,12 @@ export default function WatchlistPage() {
           <p className="text-muted-foreground mt-1">
             Track target companies and get alerts for matching role titles.
           </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Check Now runs a fast preview sample. Full ingestion + notifications run via cron.
+          </p>
         </div>
         <Button variant="outline" onClick={runCheckNow}>
-          Check Now
+          Preview Check
         </Button>
       </div>
 

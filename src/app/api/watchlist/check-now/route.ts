@@ -30,7 +30,10 @@ export async function POST() {
         sampledWatch: null,
         jobsFetched: 0,
         matchesFound: 0,
+        alertsCreated: 0,
+        alertsNotified: 0,
         hiddenByKeyword: 0,
+        mode: "preview",
         errors: [],
       });
     }
@@ -63,7 +66,10 @@ export async function POST() {
       },
       jobsFetched: sampled.length,
       matchesFound,
+      alertsCreated: 0,
+      alertsNotified: 0,
       hiddenByKeyword,
+      mode: "preview",
       note: "Lightweight preview check. Full ingestion + notifications happen in cron runs.",
       errors: [],
     });
@@ -74,7 +80,10 @@ export async function POST() {
         sampledWatch: null,
         jobsFetched: 0,
         matchesFound: 0,
+        alertsCreated: 0,
+        alertsNotified: 0,
         hiddenByKeyword: 0,
+        mode: "preview",
         errors: [error instanceof Error ? error.message : "Check failed"],
       },
       { status: 500 }
